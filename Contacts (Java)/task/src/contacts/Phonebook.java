@@ -18,4 +18,8 @@ public class Phonebook {
     void addContact(Contact contact) {
         contacts.add(contact);
     }
+
+    String getPhoneNumber(int id) {
+        return contacts.get(id).getPhoneNumber();
+    }
 }
