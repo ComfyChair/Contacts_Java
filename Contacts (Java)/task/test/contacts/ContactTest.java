@@ -34,16 +34,23 @@ public class ContactTest extends TestCase {
     }
 
     @Test
-    public void testAddContact() {
+    public void testAddPerson() {
         Phonebook phonebook = new Phonebook();
-        Contact contact = new Contact(this.firstName, this.lastName, this.phone);
-        phonebook.addContact(this.firstName, this.lastName, this.phone);
+        Contact contact = new Person();
+        contact.edit("name", this.firstName);
+        contact.edit("lastName", this.lastName);
+        contact.edit("number", this.phone);
+        phonebook.addContact(contact);
         assertTrue(phonebook.contains(contact));
+        assertEquals(phonebook.getContacts().getLast().name, this.firstName);
     }
 
     @Test
     public void testPhoneValidation() {
-        Contact contact = new Contact(this.firstName, this.lastName, this.phone);
+        Contact contact = new Person();
+        contact.edit("name", this.firstName);
+        contact.edit("lastName", this.lastName);
+        contact.edit("number", this.phone);
         assertEquals(contact.hasNumber(), this.isValid);
     }
 }

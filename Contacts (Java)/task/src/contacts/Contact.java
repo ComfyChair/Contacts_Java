@@ -1,52 +1,44 @@
 package contacts;
 
-import java.util.Objects;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 
-final class Contact {
-    private String firstName;
-    private String lastName;
-    private String phoneNumber = "";
+abstract class Contact {
+    protected static final String NO_DATA = "[no data]";
+    protected String name;
+    private String number;
+    private final LocalDateTime timeCreated;
+    private LocalDateTime timeModified;
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
-    Contact(String firstName, String lastName, String phoneNumber) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        setPhoneNumber(phoneNumber);
+    protected List<String> editableFields;
+    protected Map<String, Consumer<String>> editFunctions = new HashMap<>();
+
+    Contact() {
+        this.timeCreated = LocalDateTime.now();
+        this.timeModified = LocalDateTime.now();
+        editFunctions.put("name", this::setName);
+        editFunctions.put("number", this::setPhone);
     }
 
-    String getFirstName() {
-        return firstName;
-    }
-
-    void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    String getLastName() {
-        return lastName;
-    }
-
-    String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    void setPhoneNumber(String phoneNumber) {
-        if (isValid(phoneNumber)){
-            this.phoneNumber = phoneNumber;
+    private void setPhone(String number) {
+        if (isValidNumber(number)) {
+            this.number = number;
         } else {
-            this.phoneNumber = "";
-            System.out.println("Wrong number format!");
+            System.out.println("Invalid phone number: " + number);
+            this.number = "";
         }
     }
 
-    boolean hasNumber() {
-        return !phoneNumber.isEmpty();
+    private void setName(String name) {
+        this.name = name;
     }
 
-    private boolean isValid(String phoneNumber) {
+    boolean isValidNumber(String phoneNumber) {
         String symbols = "[a-zA-Z0-9]";
         String separator = "[\\s-]";
         String firstGroupWrapped = String.format("(\\(?%1$s+\\)?)", symbols);
@@ -56,51 +48,29 @@ final class Contact {
         return phoneNumber.matches(pattern);
     }
 
-    @Override
-    public String toString() {
-        String number = hasNumber() ? getPhoneNumber() : "[no number]";
-        return String.format("%s %s, %s", firstName, lastName, number);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof Contact contact)) return false;
-
-        return Objects.equals(firstName, contact.firstName) &&
-                Objects.equals(lastName, contact.lastName) &&
-                Objects.equals(phoneNumber, contact.phoneNumber);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = Objects.hashCode(firstName);
-        result = 31 * result + Objects.hashCode(lastName);
-        result = 31 * result + Objects.hashCode(phoneNumber);
-        return result;
-    }
-
-    public void edit(String fieldString, String newValue) {
-        EditField editField = getField(fieldString);
-        if (editField != null) {
-            editField.edit(this, newValue);
-            System.out.println("The record updated.");
+    void edit(String fieldString, String newValue) {
+        if (editFunctions.containsKey(fieldString)) {
+            editFunctions.get(fieldString).accept(newValue);
+            timeModified = LocalDateTime.now();
+            System.out.println("The record updated!");
         }
     }
 
-    private static EditField getField(String typeString){
-        try {
-            return EditField.valueOf(typeString.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            System.out.println("Invalid field: " + typeString);
-            return null;
-        }
+    boolean hasNumber() {
+        return number!= null && !number.isBlank();
     }
 
-    private enum EditField {
-        NAME { @Override void edit(Contact contact, String value) { contact.setFirstName(value); } },
-        SURNAME { @Override void edit(Contact contact, String value) { contact.setLastName(value); } },
-        NUMBER { @Override void edit(Contact contact, String value) { contact.setPhoneNumber(value); } };
+    List<String> getEditableFields() {
+        return editableFields;
+    }
 
-        abstract void edit(Contact contact, String newValue);
+    abstract String getLongInfo();
+    abstract String getShortInfo();
+
+    protected String phoneAndTime() {
+        String number = this.number.isEmpty() ? NO_DATA : this.number;
+        return "\nNumber: " + number +
+                "\nTime created: " + formatter.format(timeCreated) +
+                "\nTime last edit: " + formatter.format(timeModified);
     }
 }
