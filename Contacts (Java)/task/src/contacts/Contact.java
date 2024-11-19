@@ -1,5 +1,7 @@
 package contacts;
 
+import java.util.Objects;
+
 final class Contact {
     private String firstName;
     private String lastName;
@@ -9,33 +11,39 @@ final class Contact {
         this.firstName = firstName;
         this.lastName = lastName;
         setPhoneNumber(phoneNumber);
-        System.out.println("A record created!");
     }
 
-    public String getFirstName() {
+    String getFirstName() {
         return firstName;
     }
 
-    public void setFirstName(String firstName) {
+    void setFirstName(String firstName) {
         this.firstName = firstName;
     }
 
-    public void setLastName(String lastName) {
+    void setLastName(String lastName) {
         this.lastName = lastName;
     }
 
-    public String getLastName() {
+    String getLastName() {
         return lastName;
     }
 
-    public String getPhoneNumber() {
+    String getPhoneNumber() {
         return phoneNumber;
     }
 
-    public void setPhoneNumber(String phoneNumber) {
+    void setPhoneNumber(String phoneNumber) {
         if (isValid(phoneNumber)){
             this.phoneNumber = phoneNumber;
+        } else {
+            this.phoneNumber = "";
+            System.out.println("Wrong number format!");
         }
+    }
+
+    boolean hasNumber() {
+        return !phoneNumber.isEmpty();
     }
 
     private boolean isValid(String phoneNumber) {
@@ -50,10 +58,49 @@ final class Contact {
 
     @Override
     public String toString() {
-        return "Contact{" +
-                "firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", phoneNumber='" + phoneNumber + '\'' +
-                '}';
+        String number = hasNumber() ? getPhoneNumber() : "[no number]";
+        return String.format("%s %s, %s", firstName, lastName, number);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Contact contact)) return false;
+
+        return Objects.equals(firstName, contact.firstName) &&
+                Objects.equals(lastName, contact.lastName) &&
+                Objects.equals(phoneNumber, contact.phoneNumber);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hashCode(firstName);
+        result = 31 * result + Objects.hashCode(lastName);
+        result = 31 * result + Objects.hashCode(phoneNumber);
+        return result;
+    }
+
+    public void edit(String fieldString, String newValue) {
+        EditField editField = getField(fieldString);
+        if (editField != null) {
+            editField.edit(this, newValue);
+            System.out.println("The record updated.");
+        }
+    }
+
+    private static EditField getField(String typeString){
+        try {
+            return EditField.valueOf(typeString.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid field: " + typeString);
+            return null;
+        }
+    }
+
+    private enum EditField {
+        NAME { @Override void edit(Contact contact, String value) { contact.setFirstName(value); } },
+        SURNAME { @Override void edit(Contact contact, String value) { contact.setLastName(value); } },
+        NUMBER { @Override void edit(Contact contact, String value) { contact.setPhoneNumber(value); } };
+
+        abstract void edit(Contact contact, String newValue);
     }
 }
