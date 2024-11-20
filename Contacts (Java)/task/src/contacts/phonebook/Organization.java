@@ -1,4 +1,4 @@
-package contacts;
+package contacts.phonebook;
 
 import java.util.List;
 
@@ -8,11 +8,8 @@ public class Organization extends Contact {
     Organization() {
         super();
         editableFields = List.of("name", "address", "number");
-        editFunctions.put("address", this::setAddress);
-    }
-
-    private void setAddress(String address) {
-        this.address = address;
+        setMethods.put("address", (address) -> this.address = address);
+        getMethods.put("address", () -> address);
     }
 
     @Override
@@ -23,7 +20,7 @@ public class Organization extends Contact {
     }
 
     @Override
-    String getShortInfo() {
+    public String getShortInfo() {
         return name;
     }
 }

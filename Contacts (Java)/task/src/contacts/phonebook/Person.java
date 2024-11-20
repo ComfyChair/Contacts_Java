@@ -1,4 +1,4 @@
-package contacts;
+package contacts.phonebook;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -13,25 +13,14 @@ public class Person extends Contact {
     Person() {
         super();
         editableFields = List.of("name", "surname", "birth date", "gender", "number");
-        editFunctions.put("surname", this::setSurname);
-        editFunctions.put("birthDate", this::setBirthDate);
-        editFunctions.put("gender", this::setGender);
-    }
 
-    @Override
-    public String getLongInfo() {
-        String birthDate = this.birthDate == null ? NO_DATA : this.birthDate.toString();
-        String gender = this.gender == Gender.UNKNOWN ? NO_DATA : this.gender.abbreviation;
-        return "Name: " + name +
-                "\nSurname: " + surname +
-                "\nBirth date: " + birthDate +
-                "\nGender: " + gender +
-                super.phoneAndTime();
-    }
+        setMethods.put("surname", (surname) -> this.surname = surname);
+        setMethods.put("birthDate", this::setBirthDate);
+        setMethods.put("gender", (gender) -> this.gender = Gender.fromString(gender));
 
-    @Override
-    String getShortInfo() {
-        return String.format("%s %s", name, surname);
+        getMethods.put("surname", () -> surname);
+        getMethods.put("birthDate", this::getBirthDate);
+        getMethods.put("gender", this::getGender);
     }
 
     private void setBirthDate(String birthDate) {
@@ -48,16 +37,29 @@ public class Person extends Contact {
                     this.birthDate = null;
                 }
             }
-
         }
     }
 
-    private void setSurname(String surname) {
-        this.surname = surname;
+    private String getGender() {
+        return this.gender == Gender.UNKNOWN ? NO_DATA : this.gender.abbreviation;
     }
 
-    private void setGender(String genderString) {
-        this.gender = Gender.getGender(genderString);
+    private String getBirthDate() {
+        return this.birthDate == null ? NO_DATA : this.birthDate.toString();
+    }
+
+    @Override
+    public String getShortInfo() {
+        return String.format("%s %s", name, surname);
+    }
+
+    @Override
+    public String getLongInfo() {
+        return "Name: " + name +
+                "\nSurname: " + surname +
+                "\nBirth date: " + getBirthDate() +
+                "\nGender: " + getGender() +
+                super.phoneAndTime();
     }
 
     private enum Gender {
@@ -68,7 +70,7 @@ public class Person extends Contact {
             this.abbreviation = abbreviation;
         }
 
-        static Gender getGender(String genderString) {
+        static Gender fromString(String genderString) {
             String query = genderString.toUpperCase();
             for (Gender gender : Gender.values()) {
                 if (gender.abbreviation.equals(query) || gender.name().equals(query)) {
