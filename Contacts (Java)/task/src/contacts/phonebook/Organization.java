@@ -1,6 +1,9 @@
 package contacts.phonebook;
 
+import java.io.Serializable;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class Organization extends Contact {
     private String address;
@@ -8,8 +11,8 @@ public class Organization extends Contact {
     Organization() {
         super();
         editableFields = List.of("name", "address", "number");
-        setMethods.put("address", (address) -> this.address = address);
-        getMethods.put("address", () -> address);
+        setMethods.put("address", (Consumer<String> & Serializable) (address) -> this.address = address);
+        getMethods.put("address", (Supplier<String> & Serializable) () -> address);
     }
 
     @Override

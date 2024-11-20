@@ -29,11 +29,11 @@ public abstract class Contact implements Serializable {
         this.timeCreated = LocalDateTime.now();
         this.timeModified = LocalDateTime.now();
 
-        setMethods.put("name", (name) -> this.name = name);
-        setMethods.put("number", this::setNumber);
+        setMethods.put("name", (Consumer<String> & Serializable) (name) -> this.name = name);
+        setMethods.put("number", (Consumer<String> & Serializable) this::setNumber);
 
-        getMethods.put("name", () -> name);
-        getMethods.put("number", () -> number);
+        getMethods.put("name", (Supplier<String> & Serializable) () -> name);
+        getMethods.put("number", (Supplier<String> & Serializable) () -> number);
     }
 
     private void setNumber(String number) {
@@ -89,6 +89,6 @@ public abstract class Contact implements Serializable {
         String number = this.number.isEmpty() ? NO_DATA : this.number;
         return "\nNumber: " + number +
                 "\nTime created: " + formatter.format(timeCreated) +
-                "\nTime last edit: " + formatter.format(timeModified) + "\n";
+                "\nTime last edit: " + formatter.format(timeModified);
     }
 }

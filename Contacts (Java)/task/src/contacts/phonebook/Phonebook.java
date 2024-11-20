@@ -7,7 +7,15 @@ import java.util.List;
 public class Phonebook implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
-    private final List<Contact> contacts = new ArrayList<>();
+    private final List<Contact> contacts;
+
+    public Phonebook() {
+        this.contacts = new ArrayList<>();
+    }
+
+    private Phonebook(List<Contact> contacts) {
+        this.contacts = contacts;
+    }
 
     // Menu actions
     public void addContact(Contact contact) {
@@ -15,16 +23,9 @@ public class Phonebook implements Serializable {
         System.out.println("The record added.");
     }
 
-    public void removeContact(int index) {
-        contacts.remove(index);
+    public void remove(Contact currentContact) {
+        contacts.remove(currentContact);
         System.out.println("The record removed!");
-    }
-
-    public Contact getContact(int index) {
-        if (index < 0 || index >= contacts.size()) {
-            return null;
-        }
-        return contacts.get(index);
     }
 
     public int getCount() {
@@ -44,7 +45,7 @@ public class Phonebook implements Serializable {
             if (!fileExists) { fileExists = file.createNewFile(); }
             if (fileExists) {
                 try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(file)))) {
-                    oos.writeObject(this);
+                    oos.writeObject(contacts);
                 } catch (IOException e) {
                     System.out.println("IO exception while writing file");
                 }
@@ -60,9 +61,9 @@ public class Phonebook implements Serializable {
         File file = new File(filename);
         if (file.exists() && file.isFile() && file.canRead()) {
             try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)))) {
-                Object phonebookObject = ois.readObject();
+                Object contactList = ois.readObject();
                 System.out.printf("open %s%n", filename);
-                return (Phonebook) phonebookObject;
+                return new Phonebook((List<Contact>) contactList);
             } catch (FileNotFoundException e) {
                 System.out.println("File not found!");
             } catch (IOException e) {
@@ -74,4 +75,5 @@ public class Phonebook implements Serializable {
         System.out.println("Phonebook could not be read from file: " + file.getAbsolutePath());
         return null;
     }
+
 }

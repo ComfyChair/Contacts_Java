@@ -7,15 +7,15 @@ import java.util.stream.Collectors;
 enum Action {
     // main menu commands
     ADD     ("add", (app, ignored) -> app.addContact()),
-    LIST    ("list", (app, ignored) -> app.list()),
+    LIST    ("list", (app, ignored) -> app.listMenu()),
     SEARCH  ("search", (app, ignored) -> app.search()),
     COUNT   ("count", (app, ignored) -> app.countContacts()),
     EXIT    ("exit", (ignored1, ignored2) -> {}),
     // sub menu actions
     NUMBER  ("[number]", PhoneBookApp::record),
-    AGAIN   ("again", ((app, ignored) -> app.search())),
-    EDIT    ("edit", PhoneBookApp::editContact),
-    DELETE  ("delete", PhoneBookApp::deleteContact),
+    AGAIN   ("again", ((app, ignored) -> app.search()) ),
+    EDIT    ("edit", (app, ignored) -> app.editContact() ),
+    DELETE  ("delete", (app, ignored) -> app.deleteContact() ),
     BACK    ("back", (ignored1, ignored2) -> {}),
     MENU    ("menu", (ignored1, ignored2) -> {}),
  ;
@@ -40,7 +40,6 @@ enum Action {
             try {
                 return Action.valueOf(typeString.toUpperCase());
             } catch (IllegalArgumentException e) {
-                System.out.println("Invalid command: " + typeString);
                 return null;
             }
         }

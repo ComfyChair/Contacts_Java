@@ -1,9 +1,12 @@
 package contacts.phonebook;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class Person extends Contact {
     private String surname;
@@ -14,13 +17,13 @@ public class Person extends Contact {
         super();
         editableFields = List.of("name", "surname", "birth date", "gender", "number");
 
-        setMethods.put("surname", (surname) -> this.surname = surname);
-        setMethods.put("birthDate", this::setBirthDate);
-        setMethods.put("gender", (gender) -> this.gender = Gender.fromString(gender));
+        setMethods.put("surname", (Consumer<String> & Serializable) (surname) -> this.surname = surname);
+        setMethods.put("birth date", (Consumer<String> & Serializable) this::setBirthDate);
+        setMethods.put("gender", (Consumer<String> & Serializable) (gender) -> this.gender = Gender.fromString(gender));
 
-        getMethods.put("surname", () -> surname);
-        getMethods.put("birthDate", this::getBirthDate);
-        getMethods.put("gender", this::getGender);
+        getMethods.put("surname", (Supplier<String> & Serializable) () -> surname);
+        getMethods.put("birth date", (Supplier<String> & Serializable) this::getBirthDate);
+        getMethods.put("gender", (Supplier<String> & Serializable) this::getGender);
     }
 
     private void setBirthDate(String birthDate) {

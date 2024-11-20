@@ -13,10 +13,13 @@ import static contacts.Action.*;
 
 public class PhoneBookApp {
     private final Phonebook phonebook;
+    private List<Contact> currentContactList;
+    private Contact currentContact;
     private static final Scanner scanner = new Scanner(System.in);
 
     private PhoneBookApp(Phonebook phonebook) {
         this.phonebook = phonebook != null? phonebook : new Phonebook();
+        this.currentContactList = this.phonebook.getContacts();
         mainMenu();
     }
 
@@ -29,94 +32,104 @@ public class PhoneBookApp {
     }
 
     private void mainMenu() {
-        showMenu("[menu]", EnumSet.of(ADD, LIST, SEARCH, COUNT, EXIT), EXIT.name());
+        showMenu("[menu]", EnumSet.of(ADD, LIST, SEARCH, COUNT, EXIT), EnumSet.of(EXIT));
         scanner.close();
         phonebook.savePhonebook("phonebook.db");
     }
 
     void record(String indexString) {
-        //TODO: fix search list index should be mapped to phonebook index; maybe take Contact as parameter?
-        try {
-            Contact contact = phonebook.getContact(Integer.parseInt(indexString));
-            if (contact != null) {
-                System.out.println(contact.getLongInfo());
-                showMenu("[record]", EnumSet.of(NUMBER, EDIT, DELETE, MENU), MENU.name());
+        int index = Integer.parseInt(indexString) - 1;
+        if (index >= 0 && index < this.currentContactList.size()) {
+            currentContact = currentContactList.get(index);
+            if (currentContact != null) {
+                System.out.println(currentContact.getLongInfo());
+                showMenu("[record]", EnumSet.of(EDIT, DELETE, MENU), EnumSet.of(MENU, DELETE));
             } else {
                 System.out.println("Not a valid record index: " + indexString);
             }
-        } catch (NumberFormatException e) {
-            System.out.println("Not a valid record index: " + indexString);
+        } else {
+            System.out.println("Invalid index: " + indexString);
         }
     }
 
-    void list() {
-        List<Contact> contacts = phonebook.getContacts();
-        listContacts(contacts);
-        // TODO: fix no entries shown
-        showMenu("[list]", EnumSet.of(NUMBER, BACK), BACK.name());
-    }
-
-    private void listContacts(List<Contact> contacts) {
-        for (int i = 0; i < contacts.size(); i++) {
-            Contact contact = contacts.get(i);
-            System.out.printf("%d. %s%n", i + 1, contact.getShortInfo());
+    void listMenu() {
+        currentContactList = phonebook.getContacts();
+        if (currentContactList.isEmpty()) {
+            System.out.println("No contacts in phonebook");
+        } else {
+            listCurrentContacts();
+            showMenu("[list]", EnumSet.of(NUMBER, BACK), EnumSet.of(NUMBER, BACK));
         }
-    }
-
-    public void searchAndPrint(String query) {
-        Pattern pattern = Pattern.compile(query, Pattern.CASE_INSENSITIVE);
-        List<Contact> results = phonebook.getContacts().stream()
-                .filter(c -> pattern.matcher(c.getSearchString()).find())
-                .toList();
-        listContacts(results);
     }
 
     public void search() {
-        System.out.print("Enter search query: ");
-        String query = scanner.nextLine();
-        searchAndPrint(query);
-        showMenu("[search]", EnumSet.of(NUMBER, BACK, AGAIN), "(AGAIN|BACK)");
+        if (phonebook.getContacts().isEmpty()) {
+            System.out.println("No contacts in phonebook");
+        } else {
+            System.out.print("Enter search query: ");
+            String query = scanner.nextLine();
+            Pattern pattern = Pattern.compile(query, Pattern.CASE_INSENSITIVE);
+            currentContactList = phonebook.getContacts().stream()
+                    .filter(c -> pattern.matcher(c.getSearchString()).find())
+                    .toList();
+            System.out.printf(currentContactList.isEmpty() ?
+                    "No search results." :
+                    "Found %s results: %n", currentContactList.size());
+            listCurrentContacts();
+            showMenu("[search]", EnumSet.of(NUMBER, BACK, AGAIN), EnumSet.of(NUMBER, BACK, AGAIN));
+        }
     }
 
-    private void showMenu(String name, EnumSet<Action> actions, String exitCmd) {
+    private void showMenu(String name, EnumSet<Action> actions, EnumSet<Action> exitActions) {
         String input;
+        Action action;
         do {
             System.out.printf("\n%s Enter action (%s): ", name, Action.getActionList(actions));
-            input = scanner.nextLine().toUpperCase();
-            Action action = Action.getAction(input);
+            input = scanner.nextLine().strip().toUpperCase();
+            action = Action.getAction(input);
             if (action != null && actions.contains(action)) {
                 action.action.accept(this, input);
+            } else {
+                System.out.println("Invalid action: " + input);
             }
-        } while (!input.matches(exitCmd));
+        } while (!exitActions.contains(action));
     }
 
     void addContact() {
         Contact newContact = ContactFactory.createContact(scanner);
-        phonebook.addContact(newContact);
-    }
-
-    void deleteContact(String indexString) {
-        int index = Integer.parseInt(indexString);
-        if (phonebook.getContact(index) != null) {
-            phonebook.removeContact(index);
+        if (newContact != null) {
+            phonebook.addContact(newContact);
         }
     }
 
-    void editContact(String indexString) {
-        Contact contact = phonebook.getContact(Integer.parseInt(indexString));
-        if (contact != null) {
-            System.out.printf("Select a field %s: ", contact.getEditableFields().toString()
+    void deleteContact() {
+        if (currentContact != null) {
+            phonebook.remove(currentContact);
+        }
+    }
+
+    void editContact() {
+        if (currentContact != null) {
+            System.out.printf("Select a field %s: ", currentContact.getEditableFields().toString()
                     .replace("[", "(").replace("]", ")"));
             String fieldString = scanner.nextLine();
             System.out.printf("Enter new %s: ", fieldString);
             String newValue = scanner.nextLine();
-            contact.set(fieldString, newValue);
+            currentContact.set(fieldString, newValue);
             System.out.println("Saved");
+            System.out.println(currentContact.getLongInfo());
         }
     }
 
     void countContacts() {
         System.out.printf("The Phone Book has %d records.%n", phonebook.getCount());
+    }
+
+    private void listCurrentContacts() {
+        for (int i = 0; i < currentContactList.size(); i++) {
+            Contact contact = currentContactList.get(i);
+            System.out.printf("%d. %s%n", i + 1, contact.getShortInfo());
+        }
     }
 
     public static void main(String[] args) {
