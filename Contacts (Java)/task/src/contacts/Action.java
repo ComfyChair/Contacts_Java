@@ -12,7 +12,7 @@ enum Action {
     COUNT   ("count", (app, ignored) -> app.countContacts()),
     EXIT    ("exit", (ignored1, ignored2) -> {}),
     // sub menu actions
-    NUMBER  ("[number]", PhoneBookApp::record),
+    NUMBER  ("[number]", PhoneBookApp::recordMenu),
     AGAIN   ("again", ((app, ignored) -> app.search()) ),
     EDIT    ("edit", (app, ignored) -> app.editContact() ),
     DELETE  ("delete", (app, ignored) -> app.deleteContact() ),

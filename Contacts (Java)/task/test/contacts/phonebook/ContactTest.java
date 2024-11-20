@@ -59,7 +59,7 @@ public class ContactTest extends TestCase {
     @Test
     public void testBirthDateValidation() {
         Contact contact = new Person();
-        contact.set("birthDate", this.setBirthdate);
-        assertEquals(this.expectedBirthdate, contact.get("birthDate"));
+        contact.set("birth date", this.setBirthdate);
+        assertEquals(this.expectedBirthdate, contact.get("birth date"));
     }
 }

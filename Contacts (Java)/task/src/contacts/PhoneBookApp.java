@@ -37,7 +37,7 @@ public class PhoneBookApp {
         phonebook.savePhonebook("phonebook.db");
     }
 
-    void record(String indexString) {
+    void recordMenu(String indexString) {
         int index = Integer.parseInt(indexString) - 1;
         if (index >= 0 && index < this.currentContactList.size()) {
             currentContact = currentContactList.get(index);
